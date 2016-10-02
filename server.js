@@ -1,9 +1,9 @@
 var express = require("express")
-  , app = express()
-  , http = require("http").createServer(app)
-  , bodyParser = require("body-parser")
-  , io = require("socket.io").listen(http)
-  , _ = require("underscore");
+var app = express()
+var http = require("http").createServer(app)
+var bodyParser = require("body-parser")
+var io = require("socket.io").listen(http)
+var _ = require("underscore");
 
 var participants = [];
 
@@ -29,37 +29,32 @@ app.use(bodyParser.json());
 
 /* Server routing */
 
-//Handle route "GET /", as in "http://localhost:8080/"
+//Handle route
 app.get("/", function(request, response) {
 
-  //Render the view called "index"
+  //To call index
   response.render("index");
 
 });
 
-//POST method to create a chat message
+//POST method to create a message
 app.post("/message", function(request, response) {
 
-  //The request body expects a param named "message"
+  //The request body
   var message = request.body.message;
 
-  //If the message is empty or wasn't sent it's a bad request
+  //Check msg is empty
   if(_.isUndefined(message) || _.isEmpty(message.trim())) {
     return response.json(400, {error: "Message is invalid"});
   }
 
-  //We also expect the sender's name with the message
   var name = request.body.name;
-
-  //Let our chatroom know there was a new message
   io.sockets.emit("incomingMessage", {message: message, name: name});
 
-  //Looks good, let the client know
   response.json(200, {message: "Message received"});
 
 });
 
-/* Socket.IO events */
 io.on("connection", function(socket){
 
   socket.on("newUser", function(data) {
